@@ -17,9 +17,9 @@ import java.util.Locale
 class MainActivity : AppCompatActivity(), LocationListener {
 
     private lateinit var locationManager: LocationManager
-    private lateinit var distanceTextView: TextView
-    private lateinit var startButton: Button
-    private lateinit var stopButton: Button
+    private var distanceTextView: TextView? = null
+    private var startButton: Button? = null
+    private var stopButton: Button? = null
 
     private var isTracking = false
     private var totalDistanceInMeters = 0.0
@@ -29,14 +29,20 @@ class MainActivity : AppCompatActivity(), LocationListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        distanceTextView = findViewById(R.id.distanceTextView)
-        startButton = findViewById(R.id.startButton)
-        stopButton = findViewById(R.id.stopButton)
+        // Using safe finding handles in case IDs in activity_main.xml are capitalized or named slightly differently
+        distanceTextView = findViewById(resources.getIdentifier("distanceTextView", "id", packageName))
+            ?: findViewById(resources.getIdentifier("distance_text", "id", packageName))
+        
+        startButton = findViewById(resources.getIdentifier("startButton", "id", packageName))
+            ?: findViewById(resources.getIdentifier("start_button", "id", packageName))
+            
+        stopButton = findViewById(resources.getIdentifier("stopButton", "id", packageName))
+            ?: findViewById(resources.getIdentifier("stop_button", "id", packageName))
         
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-        startButton.setOnClickListener { startTracking() }
-        stopButton.setOnClickListener { stopTracking() }
+        startButton?.setOnClickListener { startTracking() }
+        stopButton?.setOnClickListener { stopTracking() }
         
         updateDisplay()
     }
@@ -54,8 +60,6 @@ class MainActivity : AppCompatActivity(), LocationListener {
         lastLocation = null
         updateDisplay()
 
-        // CRITICAL FIX: Force hardware GPS provider, request updates every 2 seconds, 
-        // and ignore movements less than 5 meters to filter out indoor drift/glitches.
         locationManager.requestLocationUpdates(
             LocationManager.GPS_PROVIDER,
             2000L, 
@@ -63,18 +67,17 @@ class MainActivity : AppCompatActivity(), LocationListener {
             this
         )
         
-        Toast.makeText(this, "Tracking Started", Short.LENGTH_SHORT).show()
+        Toast.makeText(this, "Tracking Started", Toast.LENGTH_SHORT).show()
     }
 
     private fun stopTracking() {
         if (!isTracking) return
         isTracking = false
         locationManager.removeUpdates(this)
-        Toast.makeText(this, "Tracking Stopped", Short.LENGTH_SHORT).show()
+        Toast.makeText(this, "Tracking Stopped", Toast.LENGTH_SHORT).show()
     }
 
     override fun onLocationChanged(location: Location) {
-        // Only calculate distance if the GPS signal is highly accurate (under 15 meters margin of error)
         if (location.accuracy > 15) return
 
         if (lastLocation != null) {
@@ -87,7 +90,8 @@ class MainActivity : AppCompatActivity(), LocationListener {
 
     private fun updateDisplay() {
         val distanceInKm = totalDistanceInMeters / 1000.0
-        distanceTextView.text = String.format(Locale.getDefault(), "%.2f km", distanceInKm)
+        val textString = String.format(Locale.getDefault(), "%.2f km", distanceInKm)
+        distanceTextView?.text = textString
     }
 
     override fun onDestroy() {
