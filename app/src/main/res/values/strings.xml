@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">DistanceTracker</string>
+    <string name="start_tracking">Start</string>
+    <string name="stop_tracking">Stop</string>
+    <string name="view_log">View Log</string>
+    <string name="distance_label">Distance: 0.00 km</string>
+</resources>
